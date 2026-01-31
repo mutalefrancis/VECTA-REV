@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MyWay | Find Your Space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --topaz: #FF9500; --neon: #e0e0e0; --bg: #0f1113;       
+            --card: #1a1d21; --text: #ffffff; --border: #2d3136;   
+            --accent: #9ca3af; --danger: #FF3B30;   
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
+
+        /* STATUS BAR */
+        .sys-status-bar {
+            background: #000; padding: 8px 20px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem; color: var(--topaz); display: flex; align-items: center;
+            gap: 8px; border-bottom: 1px solid var(--border); letter-spacing: 1px;
+        }
+        .pulse-dot { width: 6px; height: 6px; background: var(--topaz); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        nav { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--neon); letter-spacing: -2px; }
+
+        /* SEARCH STICKY */
+        .search-container { 
+            padding: 10px 20px 20px 20px; 
+            position: sticky; top: 0; z-index: 110; 
+            background: rgba(15, 17, 19, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        }
+        .search-bar { 
+            width: 100%; background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid var(--border); padding: 18px; border-radius: 15px; 
+            color: white; outline: none; font-family: 'JetBrains Mono', monospace;
+        }
+
+        .filter-wrapper { 
+            position: sticky; top: 82px; 
+            background: rgba(15, 17, 19, 0.85); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 100; border-bottom: 1px solid var(--border); 
+        }
+        .filter-container { padding: 15px 20px; overflow-x: auto; display: flex; gap: 10px; scrollbar-width: none; }
+        .filter-container::-webkit-scrollbar { display: none; }
+        
+        .chip { 
+            padding: 8px 20px; border-radius: 20px; border: 1px solid var(--border); 
+            color: var(--accent); font-weight: 700; font-size: 0.75rem; 
+            white-space: nowrap; background: rgba(255,255,255,0.05); 
+        }
+        .chip.active { background: var(--topaz); color: black; border-color: var(--topaz); }
+
+        /* CARDS */
+        .main-content { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 24px; border: 1px solid var(--border); margin-bottom: 25px; overflow: hidden; position: relative; transition: transform 0.2s; }
+        .card.is-full { opacity: 0.6; filter: grayscale(1); }
+        
+        .full-overlay {
+            position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
+            background: var(--danger); color: white; padding: 8px 20px; font-weight: 900;
+            z-index: 99; border: 2px solid white; pointer-events: none;
+        }
+
+        .img-stack { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .img-stack img { width: 100%; aspect-ratio: 16/11; object-fit: cover; flex-shrink: 0; scroll-snap-align: start; }
+
+        .price-badge { position: absolute; top: 20px; right: 20px; background: #1a4bd3; color: white; padding: 6px 14px; border-radius: 8px; font-weight: 800; z-index: 10; }
+
+        .card-body { padding: 20px; }
+        .school-tag { color: var(--topaz); font-family: 'JetBrains Mono'; font-size: 0.65rem; font-weight: 800; margin-bottom: 4px; display: block; letter-spacing: 1px; }
+        .tap-hint { text-align: center; font-size: 0.65rem; color: var(--accent); font-family: 'JetBrains Mono'; margin-bottom: 15px; }
+
+        .perks-box { display: none; background: rgba(255,149,0,0.05); padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 3px solid var(--topaz); }
+        .card.expanded .perks-box { display: block; animation: slideIn 0.3s ease-out; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-row { display: flex; gap: 10px; }
+        .action-btn { flex: 1; padding: 18px; border-radius: 14px; font-weight: 800; text-align: center; text-decoration: none; font-size: 0.9rem; }
+        .btn-wa { background: var(--neon); color: black; }
+        .btn-map { border: 1px solid var(--border); color: white; }
+
+        .bottom-nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; }
+        .nav-btn { background: var(--topaz); color: black; padding: 16px 32px; border-radius: 50px; text-decoration: none; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+    <link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#FF9500">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+</head>
+<body>
+
+    <div class="sys-status-bar">
+        <span class="pulse-dot"></span> SYSTEM_LIVE: DATA_RETRIEVAL_ACTIVE
+    </div>
+
+   <nav>
+    <div class="logo" onclick="window.location.href='/'">MYWAY</div>
+    <div style="cursor: pointer; background: #222; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%;" 
+         onclick="event.stopPropagation(); window.location.href='/admin'">
+         ☰
+    </div>
+</nav>
+    <div class="search-container">
+        <input type="text" id="mainSearch" class="search-bar" placeholder="> SCAN_DATABASE..." onkeyup="searchListings()">
+    </div>
+
+    <div class="filter-wrapper">
+        <div class="filter-container">
+            <div class="chip {% if selected_school == 'All Institutions' %}active{% endif %}" onclick="filterBy('All Institutions')">EVERYWHERE</div>
+            {% for s in schools %}
+            <div class="chip {% if selected_school == s.name %}active{% endif %}" onclick="filterBy('{{ s.name }}')">{{ s.name|upper }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <main class="main-content" id="listings">
+        {% for h in houses %}
+        <article class="card {% if h.status == 'Full' %}is-full{% endif %}" 
+                 onclick="toggleExpand(this, event)" 
+                 data-searchable="{{ h.name }} {{ h.location }} {{ h.institution }}" 
+                 data-status="{{ h.status }}">
+            
+            {% if h.status == 'Full' %}
+            <div class="full-overlay">OCCUPIED</div>
+            {% endif %}
+
+            <div class="price-badge" style="{% if h.status == 'Full' %}background: #444;{% endif %}">
+                K{{ h.price }}
+            </div>
+            
+            <div class="img-stack">
+                {% if h.images %}
+                    {% for img in h.images.split(',') %}
+                        {% if img %}<img src="{{ url_for('static', filename='uploads/' + img) }}" loading="lazy">{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div style="width:100%; aspect-ratio:16/11; background:#222; display:flex; align-items:center; justify-content:center;">NO_IMAGE_LOADED</div>
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                <span class="school-tag">
+                    @ {{ h.institution|upper if h.institution else 'GENERAL' }}
+                </span>
+                
+                <h2 style="margin:0; font-size:1.3rem; font-weight:800;">{{ h.name|upper }}</h2>
+                <p style="color:var(--accent); margin:5px 0; font-size:0.8rem; font-family: 'JetBrains Mono';">📍 {{ h.location|upper }}</p>
+
+                <div class="tap-hint">> {% if h.status == 'Full' %}LISTING_OFFLINE{% else %}TAP__FOR_MANIFEST{% endif %}</div>
+
+                <div class="perks-box">
+                    <div style="color: var(--topaz); font-size: 0.65rem; font-weight: 800; margin-bottom: 8px; font-family: 'JetBrains Mono';">[ MANIFEST_DATA ]</div>
+                    <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: #fff;">
+                        {{ h.amenities|upper }}
+                        <div style="margin-top: 8px; color: var(--accent);">DISTANCE: {{ h.distance|upper }}</div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    {% if h.status == 'Available' %}
+                    <a href="{{ url_for('track_click', id=h.id) }}" class="action-btn btn-wa" onclick="event.stopPropagation()">WHATSAPP</a>
+                    {% else %}
+                    <a href="#" class="action-btn btn-wa" style="background: #333; color: #666; pointer-events:none;" onclick="event.stopPropagation()">FULL</a>
+                    {% endif %}
+                    <a href="{{ h.map_url }}" target="_blank" class="action-btn btn-map" onclick="event.stopPropagation()">MAP</a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </main>
+
+    <div class="bottom-nav">
+        <a href="{{ url_for('login') }}" class="nav-btn">List Property +</a>
+    </div>
+
+    <script>
+        // 1. Core Logic: Toggle Card
+        function toggleExpand(card, event) {
+            if (event.target.closest('.action-btn')) return;
+            const status = card.getAttribute('data-status');
+            const hint = card.querySelector('.tap-hint');
+            const isExpanded = card.classList.contains('expanded');
+            
+            document.querySelectorAll('.card').forEach(c => {
+                if(c !== card) c.classList.remove('expanded');
+            });
+            
+            if (!isExpanded) {
+                card.classList.add('expanded');
+                hint.innerText = (status === 'Full') ? "> ARCHIVE_ACCESS_ONLY" : "> ACCESSING_MANIFEST_SUCCESS";
+                setTimeout(() => { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+            } else {
+                card.classList.remove('expanded');
+                hint.innerText = (status === 'Full') ? "> LISTING_OFFLINE" : "> TAP_FOR_MANIFEST";
+            }
+        }
+
+        // 2. Search Logic
+        function searchListings() {
+            let input = document.getElementById('mainSearch').value.toLowerCase();
+            let cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                let text = card.getAttribute('data-searchable').toLowerCase();
+                card.style.display = text.includes(input) ? "block" : "none";
+            });
+        }
+
+        // 3. Filter Logic
+        function filterBy(school) { window.location.href = "/?school=" + encodeURIComponent(school); }
+
+        // 4. Keyboard Management
+        function dismissKeyboard() {
+            if (document.activeElement.tagName === 'INPUT') {
+                document.activeElement.blur();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') dismissKeyboard();
+        });
+
+        window.addEventListener('scroll', dismissKeyboard, { passive: true });
+        window.addEventListener('touchmove', dismissKeyboard, { passive: true });
+    </script>
+</body>
+</html>

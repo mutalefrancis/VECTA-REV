@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Post Property | MyWay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #ccff00; --bg: #0a0a0a; --card: #161616; --text: #ffffff; --border: #333333; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); color: var(--text); padding: 20px 20px 120px;
+        }
+
+        .header { margin: 40px 0 30px; }
+        .header h1 { font-size: 2.2rem; font-weight: 800; margin: 0; letter-spacing: -2px; color: var(--neon); }
+        .header p { color: #888; margin: 5px 0 0; font-weight: 600; font-size: 0.9rem; }
+
+        .card { background: var(--card); border-radius: 30px; padding: 25px; border: 2px solid var(--border); }
+        .input-group { margin-bottom: 25px; }
+        .input-group label { 
+            display: block; font-size: 0.7rem; font-weight: 800; color: var(--neon); 
+            text-transform: uppercase; margin-left: 5px; margin-bottom: 10px; letter-spacing: 1px;
+        }
+
+        input[type="text"], input[type="number"], input[type="file"] {
+            width: 100%; background: #000; border: 2px solid var(--border); padding: 18px;
+            border-radius: 15px; color: white; font-size: 1rem; font-family: inherit; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--neon); }
+
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .chip {
+            background: #222; padding: 12px 18px; border-radius: 12px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 700; border: 2px solid var(--border); transition: 0.2s;
+            display: inline-block;
+        }
+        .chip input { display: none; }
+        .chip:has(input:checked) { background: var(--neon); color: black; border-color: var(--neon); }
+
+        .custom-amenity-box { display: flex; gap: 10px; margin-top: 10px; }
+        .custom-amenity-box input { flex: 1; padding: 12px; font-size: 0.85rem; border-radius: 12px; background: #000; border: 1px solid var(--border); color: white; }
+        .add-btn { 
+            background: #222; border: 2px solid var(--border); color: var(--neon); 
+            padding: 0 20px; border-radius: 12px; font-weight: 800; cursor: pointer; 
+        }
+
+        .modal-trigger {
+            width: 100%; padding: 18px; background: #222; border: 2px dashed var(--border);
+            border-radius: 15px; color: #888; font-weight: 700; text-align: left; cursor: pointer;
+        }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content {
+            background: var(--card); width: 100%; max-width: 400px; border-radius: 30px;
+            border: 2px solid var(--neon); padding: 30px; max-height: 80vh; overflow-y: auto;
+        }
+
+        .submit-btn {
+            position: fixed; bottom: 30px; left: 20px; right: 20px; background: var(--neon);
+            color: black; padding: 22px; border-radius: 20px; border: none; font-weight: 800;
+            font-size: 1.1rem; box-shadow: 0 10px 20px rgba(204,255,0,0.2); z-index: 900;
+        }
+
+        .home-fab {
+            position: absolute; top: 30px; right: 20px; width: 45px; height: 45px;
+            background: var(--card); border: 2px solid var(--border); border-radius: 15px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="{{ url_for('dashboard') }}" class="home-fab">🏠</a>
+
+    <div class="header">
+        <h1>List Property</h1>
+        <p>Get your space in front of students.</p>
+    </div>
+
+    <div class="card">
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            
+            <div class="input-group">
+                <label>Property Identity</label>
+                <input type="text" name="name" placeholder="House Name" required>
+                <input type="text" name="location" placeholder="Location/Area" style="margin-top:10px;" required>
+            </div>
+
+            <div class="input-group">
+                <label>Pricing & Contact</label>
+                <input type="number" name="price" placeholder="Price per Term (K)" required>
+                <input type="text" name="phone" placeholder="WhatsApp Number" style="margin-top:10px;" required>
+            </div>
+
+            <div class="input-group">
+                <label>Proximity</label>
+                <input type="text" name="distance" placeholder="Distance (e.g. 5 mins walk)" required>
+                <input type="text" name="map_url" placeholder="Google Maps Link" style="margin-top:10px;">
+            </div>
+
+            <div class="input-group">
+                <label>Target Schools</label>
+                <div class="modal-trigger" id="schoolDisplay" onclick="toggleModal(true)">
+                    Select Institutions...
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="schoolModal">
+                <div class="modal-content">
+                    <h3 style="margin-top:0; color:var(--neon);">Select Schools</h3>
+                    <div class="chip-container">
+                        {% for s in schools %}
+                        <label class="chip">
+                            <input type="checkbox" name="schools" value="{{ s.name }}" onchange="updateSchoolCount()">
+                            {{ s.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="chip" onclick="toggleModal(false)" style="width:100%; margin-top:30px; background:var(--neon); color:black; justify-content:center;">DONE</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Amenities & Perks</label>
+                <div class="chip-container" id="amenityContainer">
+                    {% for item in ['WiFi', 'Internal Water', 'Power Backup', 'Security', 'Self-Contained'] %}
+                    <label class="chip">
+                        <input type="checkbox" name="amenities" value="{{ item }}">
+                        {{ item }}
+                    </label>
+                    {% endfor %}
+                </div>
+                
+                <div class="custom-amenity-box">
+                    <input type="text" id="customAmenityInput" placeholder="Add custom (e.g. Near Gym)">
+                    <button type="button" class="add-btn" onclick="addCustomAmenity()">ADD</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Media</label>
+                <input type="file" name="photos" multiple accept="image/*" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Publish to MyWay</button>
+        </form>
+    </div>
+
+    <script>
+        function toggleModal(show) {
+            document.getElementById('schoolModal').style.display = show ? 'flex' : 'none';
+        }
+
+        function updateSchoolCount() {
+            const checkedCount = document.querySelectorAll('input[name="schools"]:checked').length;
+            const display = document.getElementById('schoolDisplay');
+            display.innerText = checkedCount > 0 ? `${checkedCount} School(s) Selected` : "Select Institutions...";
+            display.style.color = checkedCount > 0 ? "#ccff00" : "#888";
+        }
+
+        function addCustomAmenity() {
+            const input = document.getElementById('customAmenityInput');
+            const value = input.value.trim();
+            if (value === "") return;
+
+            const container = document.getElementById('amenityContainer');
+            const label = document.createElement('label');
+            label.className = 'chip';
+            label.innerHTML = `
+                <input type="checkbox" name="amenities" value="${value}" checked>
+                ${value}
+            `;
+            
+            container.appendChild(label);
+            input.value = ""; 
+        }
+    </script>
+
+</body>
+</html>
