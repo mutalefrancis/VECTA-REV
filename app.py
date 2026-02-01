@@ -20,7 +20,7 @@ def get_db():
 
 def init_db():
     with get_db() as conn:
-        # UPDATED: Added security question and answer columns
+        # Create tables
         conn.execute("""CREATE TABLE IF NOT EXISTS landlords (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT, phone TEXT UNIQUE, password TEXT,
@@ -41,6 +41,15 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             name TEXT UNIQUE, 
             map_url TEXT)""") 
+        
+        # --- AUTO-PATCH: Add missing columns if they don't exist ---
+        try:
+            conn.execute("ALTER TABLE landlords ADD COLUMN security_question TEXT")
+        except: pass
+        try:
+            conn.execute("ALTER TABLE landlords ADD COLUMN security_answer TEXT")
+        except: pass
+        
         conn.commit()
 
 init_db()
@@ -106,7 +115,6 @@ def admin_console():
     conn = get_db()
     houses = conn.execute("SELECT * FROM boarding ORDER BY status ASC, id DESC").fetchall()
     schools = conn.execute("SELECT * FROM schools ORDER BY name ASC").fetchall()
-    # NEW: Admin can now see landlords
     landlords = conn.execute("SELECT * FROM landlords ORDER BY name ASC").fetchall()
     return render_template("admin_console.html", houses=houses, schools=schools, landlords=landlords)
 
@@ -132,6 +140,14 @@ def delete_school(id):
     conn.commit()
     return redirect(url_for('admin_console'))
 
+@app.route("/admin/delete_house/<int:id>")
+def admin_delete_house(id):
+    if not session.get('admin_auth'): return redirect(url_for('admin'))
+    conn = get_db()
+    conn.execute("DELETE FROM boarding WHERE id = ?", (id,))
+    conn.commit()
+    return redirect(url_for('admin_console'))
+
 # --- LANDLORD ROUTES ---
 
 @app.route("/register", methods=["GET", "POST"])
@@ -140,7 +156,6 @@ def register():
         name = request.form.get('name')
         phone = request.form.get('phone')
         password = request.form.get('password')
-        # NEW: Security question capture
         q = request.form.get('security_question')
         a = request.form.get('security_answer').lower().strip()
         
@@ -149,39 +164,36 @@ def register():
             conn.execute("INSERT INTO landlords (name, phone, password, security_question, security_answer) VALUES (?, ?, ?, ?, ?)", 
                          (name, phone, password, q, a))
             conn.commit()
-            flash("Account created! Welcome.", "success")
+            flash("Account created! Please login.", "success")
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash("Phone number already registered.", "danger")
     return render_template("landlord_register.html")
 
-# NEW: SELF-SERVICE FORGOT PASSWORD ROUTE
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     conn = get_db()
     step = 1
     user = None
-    
     if request.method == "POST":
         phone = request.form.get('phone')
         user = conn.execute("SELECT * FROM landlords WHERE phone = ?", (phone,)).fetchone()
         
         if request.form.get('answer'):
-            # Step 2: Checking the answer
             ans = request.form.get('answer').lower().strip()
             if user and ans == user['security_answer']:
                 new_p = request.form.get('new_password')
                 conn.execute("UPDATE landlords SET password = ? WHERE id = ?", (new_p, user['id']))
                 conn.commit()
-                flash("Access Restored! Login now.", "success")
+                flash("Password updated! Login now.", "success")
                 return redirect(url_for('login'))
             else:
-                flash("Verification Failed.", "danger")
+                flash("Wrong answer. Try again.", "danger")
                 step = 2
         elif user:
-            step = 2 # Show question
+            step = 2
         else:
-            flash("System ID not found.", "danger")
+            flash("Phone number not found.", "danger")
             
     return render_template("forgot_password.html", step=step, user=user)
 
