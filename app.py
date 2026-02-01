@@ -20,9 +20,11 @@ def get_db():
 
 def init_db():
     with get_db() as conn:
+        # UPDATED: Added security question and answer columns
         conn.execute("""CREATE TABLE IF NOT EXISTS landlords (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT, phone TEXT UNIQUE, password TEXT)""")
+            name TEXT, phone TEXT UNIQUE, password TEXT,
+            security_question TEXT, security_answer TEXT)""")
         
         conn.execute("""CREATE TABLE IF NOT EXISTS boarding (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,10 +79,12 @@ def track_click(id):
     conn = get_db()
     conn.execute("UPDATE boarding SET clicks = clicks + 1 WHERE id = ?", (id,))
     conn.commit()
-    house = conn.execute("SELECT phone FROM boarding WHERE id = ?", (id,)).fetchone()
+    house = conn.execute("SELECT name, phone FROM boarding WHERE id = ?", (id,)).fetchone()
     if house:
         clean_p = house['phone'].replace(' ', '').replace('+', '').replace('-', '')
-        return redirect(f"https://wa.me/{clean_p}")
+        if clean_p.startswith('0'): clean_p = '260' + clean_p[1:]
+        msg = f"Hello, I'm interested in {house['name']}. Is it still available?"
+        return redirect(f"https://wa.me/{clean_p}?text={msg.replace(' ', '%20')}")
     return redirect(url_for('index'))
 
 # --- ADMIN ROUTES ---
@@ -102,7 +106,9 @@ def admin_console():
     conn = get_db()
     houses = conn.execute("SELECT * FROM boarding ORDER BY status ASC, id DESC").fetchall()
     schools = conn.execute("SELECT * FROM schools ORDER BY name ASC").fetchall()
-    return render_template("admin_console.html", houses=houses, schools=schools)
+    # NEW: Admin can now see landlords
+    landlords = conn.execute("SELECT * FROM landlords ORDER BY name ASC").fetchall()
+    return render_template("admin_console.html", houses=houses, schools=schools, landlords=landlords)
 
 @app.route("/admin/add_school", methods=["POST"])
 def add_school():
@@ -118,7 +124,6 @@ def add_school():
             flash("School already exists!")
     return redirect(url_for('admin_console'))
 
-# FIX: Added Delete School Route
 @app.route("/admin/delete_school/<int:id>")
 def delete_school(id):
     if not session.get('admin_auth'): return redirect(url_for('admin'))
@@ -129,27 +134,56 @@ def delete_school(id):
 
 # --- LANDLORD ROUTES ---
 
-# FIX: Added Registration Route
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         name = request.form.get('name')
         phone = request.form.get('phone')
         password = request.form.get('password')
+        # NEW: Security question capture
+        q = request.form.get('security_question')
+        a = request.form.get('security_answer').lower().strip()
+        
         conn = get_db()
         try:
-            conn.execute("INSERT INTO landlords (name, phone, password) VALUES (?, ?, ?)", (name, phone, password))
+            conn.execute("INSERT INTO landlords (name, phone, password, security_question, security_answer) VALUES (?, ?, ?, ?, ?)", 
+                         (name, phone, password, q, a))
             conn.commit()
-            flash("Account created! Please login.", "success")
+            flash("Account created! Welcome.", "success")
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash("Phone number already registered.", "danger")
     return render_template("landlord_register.html")
 
-# FIX: Added Placeholder Forgot Password Route
-@app.route("/forgot-password")
+# NEW: SELF-SERVICE FORGOT PASSWORD ROUTE
+@app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-    return "Password recovery is currently manual. Please contact support."
+    conn = get_db()
+    step = 1
+    user = None
+    
+    if request.method == "POST":
+        phone = request.form.get('phone')
+        user = conn.execute("SELECT * FROM landlords WHERE phone = ?", (phone,)).fetchone()
+        
+        if request.form.get('answer'):
+            # Step 2: Checking the answer
+            ans = request.form.get('answer').lower().strip()
+            if user and ans == user['security_answer']:
+                new_p = request.form.get('new_password')
+                conn.execute("UPDATE landlords SET password = ? WHERE id = ?", (new_p, user['id']))
+                conn.commit()
+                flash("Access Restored! Login now.", "success")
+                return redirect(url_for('login'))
+            else:
+                flash("Verification Failed.", "danger")
+                step = 2
+        elif user:
+            step = 2 # Show question
+        else:
+            flash("System ID not found.", "danger")
+            
+    return render_template("forgot_password.html", step=step, user=user)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -230,4 +264,4 @@ def logout():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
-        
+    
