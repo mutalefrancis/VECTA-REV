@@ -3,125 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Join MyWay | Landlord</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0f1113">
+    <title>Join MyWay | Registration</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
     <style>
         :root { 
-            --neon: #ccff00; 
-            --bg: #0a0a0a; 
-            --card: #161616; 
-            --text: #ffffff; 
-            --border: #333333;
+            --topaz: #FF9500; --neon: #e0e0e0; --bg: #0f1113;       
+            --card: #1a1d21; --text: #ffffff; --border: #2d3136;   
+            --accent: #9ca3af; --danger: #FF3B30;   
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg); 
-            color: var(--text);
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px;
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); color: var(--text); 
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* STATUS BAR */
+        .sys-status-bar {
+            background: #000; padding: 8px 20px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem; color: var(--topaz); display: flex; align-items: center;
+            gap: 8px; border-bottom: 1px solid var(--border); letter-spacing: 1px;
+        }
+        .pulse-dot { width: 6px; height: 6px; background: var(--topaz); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        .auth-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
         }
 
         .card { 
-            background: var(--card); 
-            padding: 40px 30px; 
-            border-radius: 30px; 
-            width: 100%; 
-            max-width: 400px; 
-            border: 2px solid var(--border);
+            background: var(--card); padding: 45px 30px; border-radius: 28px; 
+            width: 100%; max-width: 400px; border: 1px solid var(--border);
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden;
+            text-align: center;
         }
 
-        .card:active { transform: scale(0.98); }
+        /* Topaz Side-Bar Accent */
+        .card::before {
+            content: ""; position: absolute; left: 0; top: 15%; height: 30%; width: 3px; 
+            background: var(--topaz); border-radius: 0 4px 4px 0;
+            box-shadow: 2px 0 10px rgba(255, 149, 0, 0.4);
+        }
 
-        h1 { font-size: 2rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -1px; }
-        p { color: #888; margin-bottom: 35px; font-weight: 600; font-size: 0.95rem; }
+        .logo-diamond {
+            width: 40px; height: 40px; border: 1px solid var(--border); 
+            transform: rotate(45deg); display: flex; align-items: center; 
+            justify-content: center; margin: 0 auto 20px; background: #000;
+        }
+        .logo-diamond img { width: 24px; height: 24px; transform: rotate(-45deg); }
+
+        h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--neon); letter-spacing: -1.5px; }
+        .subtitle { 
+            color: var(--accent); font-family: 'JetBrains Mono', monospace; 
+            font-size: 0.65rem; margin-bottom: 30px; letter-spacing: 1px;
+        }
 
         input, select { 
-            width: 100%; 
-            padding: 18px 20px; 
-            border-radius: 15px; 
-            border: 2px solid var(--border); 
-            background: #000; 
-            color: white;
-            margin-bottom: 15px; 
-            outline: none; 
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1rem;
-            transition: 0.3s;
-            appearance: none; /* Removes default arrow on some browsers */
+            width: 100%; padding: 16px 18px; margin-bottom: 12px; border-radius: 12px; 
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border); 
+            color: white; font-size: 0.95rem; font-family: 'JetBrains Mono', monospace;
+            outline: none; transition: 0.3s; appearance: none;
         }
-
-        input:focus, select:focus {
-            border-color: var(--neon);
-            box-shadow: 0 0 15px rgba(204, 255, 0, 0.1);
-        }
+        input:focus, select:focus { border-color: var(--topaz); background: rgba(255,255,255,0.08); }
 
         .security-label {
-            font-size: 0.7rem;
-            color: var(--neon);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 10px 0 10px 5px;
-            display: block;
+            font-size: 0.6rem; font-family: 'JetBrains Mono'; color: var(--topaz);
+            text-transform: uppercase; letter-spacing: 1.5px; margin: 15px 0 10px 5px;
+            display: block; text-align: left;
         }
 
         .btn { 
-            width: 100%; 
-            padding: 20px; 
-            border-radius: 15px; 
-            border: none; 
-            background: var(--neon); 
-            color: black; 
-            font-weight: 800; 
-            font-size: 1rem; 
-            cursor: pointer; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-            transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(204, 255, 0, 0.2);
+            background: var(--topaz); color: black; border: none; width: 100%; 
+            padding: 18px; border-radius: 14px; font-weight: 800; font-size: 0.9rem; 
+            cursor: pointer; margin-top: 15px; transition: 0.2s;
+            text-transform: uppercase; letter-spacing: 1px;
         }
+        .btn:active { transform: scale(0.97); }
 
-        .btn:active { transform: scale(0.95); opacity: 0.8; }
-        .link { display: block; text-align: center; margin-top: 25px; color: #666; text-decoration: none; font-weight: 700; font-size: 0.85rem; transition: 0.2s; }
-        .link:hover { color: var(--neon); }
-        .logo-small { color: var(--neon); font-weight: 800; font-size: 0.8rem; margin-bottom: 20px; display: block; letter-spacing: 2px; }
+        .link { 
+            display: block; text-align: center; margin-top: 25px; 
+            color: var(--accent); text-decoration: none; 
+            font-family: 'JetBrains Mono'; font-weight: 700; font-size: 0.75rem; 
+        }
+        .link span { color: var(--topaz); }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <span class="logo-small">MYWAY // PORTAL</span>
-        <h1>Create Account</h1>
-        <p>Set up your profile and security.</p>
-        
-        <form action="/register" method="POST">
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="text" name="phone" placeholder="WhatsApp Number" required>
-            <input type="password" name="password" placeholder="Create Password" required>
-            
-            <span class="security-label">Account Recovery Setup</span>
-            <select name="security_question" required>
-                <option value="" disabled selected>Select a Recovery Question</option>
-                <option value="What was the name of your first school?">First School Name?</option>
-                <option value="In what city were you born?">Birth City?</option>
-                <option value="What is your mother's maiden name?">Mother's Maiden Name?</option>
-                <option value="What was your first pet's name?">First Pet's Name?</option>
-            </select>
-            <input type="text" name="security_answer" placeholder="Your Secret Answer" required>
+    <div class="sys-status-bar">
+        <span class="pulse-dot"></span> REGISTER_NODE: NEW_ENTRY_INITIALIZED
+    </div>
 
-            <button type="submit" class="btn">Register Now</button>
-        </form>
-        
-        <a href="{{ url_for('login') }}" class="link">ALREADY REGISTERED? LOGIN</a>
+    <div class="auth-container">
+        <div class="card">
+            <div class="logo-diamond">
+                <img src="/static/icon-192.png" alt="M">
+            </div>
+
+            <h1>CREATE_ACCOUNT</h1>
+            <div class="subtitle">ESTABLISHING_USER_CREDENTIALS</div>
+            
+            <form action="/register" method="POST">
+                <input type="text" name="name" placeholder="FULL_NAME" required>
+                <input type="tel" name="phone" placeholder="WHATSAPP_LINK" required>
+                <input type="password" name="password" placeholder="SECURE_PASSWORD" required>
+                
+                <span class="security-label">-- RECOVERY_PROTOCOL</span>
+                <select name="security_question" required>
+                    <option value="" disabled selected>SELECT_RECOVERY_KEY</option>
+                    <option value="What was the name of your first school?">FIRST_SCHOOL_NAME</option>
+                    <option value="In what city were you born?">BIRTH_CITY</option>
+                    <option value="What is your mother's maiden name?">MOTHER_MAIDEN_NAME</option>
+                    <option value="What was your first pet's name?">FIRST_PET_NAME</option>
+                </select>
+                <input type="text" name="security_answer" placeholder="SECRET_RESPONSE" required>
+
+                <button type="submit" class="btn">INITIALIZE_REGISTRATION</button>
+            </form>
+            
+            <a href="{{ url_for('login') }}" class="link">ALREADY_REGISTERED? <span>LOGIN_HERE</span></a>
+        </div>
     </div>
 
 </body>
