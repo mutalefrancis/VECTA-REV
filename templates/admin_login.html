@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="theme-color" content="#0A0A0A">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+
+<link rel="manifest" href="/static/manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>TERMINAL | AUTH_GATE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --platinum: #E5E4E2;
+            --topaz: #FF9500;
+            --bg: #0A0A0A;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--platinum); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden;
+            background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+        }
+
+        /* The Mist Frame */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid var(--border); margin: 15px; pointer-events: none;
+        }
+
+        .login-box { 
+            width: 90%; 
+            max-width: 360px; 
+            padding: 40px 30px; 
+            background: var(--glass); 
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            text-align: center;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Topaz Signal Accent */
+        .login-box::after {
+            content: ""; position: absolute; top: -1px; left: 20%; right: 20%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--topaz), transparent);
+            box-shadow: 0 0 15px var(--topaz);
+        }
+
+        .danger-strip {
+            color: var(--topaz);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+            font-weight: 700;
+            opacity: 0.6;
+        }
+
+        .auth-icon { 
+            width: 60px; height: 60px; 
+            border: 1px solid var(--platinum);
+            transform: rotate(45deg);
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto 30px; 
+        }
+
+        .auth-icon span {
+            transform: rotate(-45deg);
+            font-family: 'JetBrains Mono';
+            font-size: 1.2rem;
+            color: var(--topaz);
+        }
+
+        h1 { 
+            font-size: 2rem; 
+            margin: 0; 
+            letter-spacing: -1px; 
+            line-height: 1;
+            text-transform: uppercase;
+            color: var(--platinum);
+        }
+
+        .subtitle { 
+            color: var(--platinum); 
+            font-size: 0.6rem; 
+            margin-top: 10px;
+            font-family: 'JetBrains Mono';
+            opacity: 0.4;
+            letter-spacing: 2px;
+        }
+
+        form { margin-top: 40px; }
+
+        input { 
+            width: 100%; 
+            background: rgba(0,0,0,0.4) !important; 
+            border: 1px solid var(--border); 
+            padding: 18px; 
+            color: white; 
+            font-size: 1.2rem; 
+            text-align: center; 
+            outline: none; 
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--platinum);
+            background: rgba(255,255,255,0.05) !important;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 18px; 
+            border: none; 
+            background: var(--platinum); 
+            color: black; 
+            font-weight: 800; 
+            font-size: 0.8rem; 
+            text-transform: uppercase; 
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--topaz);
+            box-shadow: 0 0 20px rgba(255, 149, 0, 0.3);
+        }
+
+        .return-link { 
+            position: fixed; 
+            bottom: 40px; 
+            text-decoration: none;
+            color: #444;
+            font-family: 'JetBrains Mono';
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            transition: 0.3s;
+        }
+        
+        .return-link:hover { color: var(--topaz); }
+    </style>
+</head>
+<body>
+
+   <body>
+
+    <div class="login-box">
+        <div class="danger-strip">MIST_PROTOCOL_INITIATED</div>
+        
+        <div class="auth-header">
+            <div class="auth-icon">
+                <img src="/static/icon-192.png" alt="Logo" 
+                     style="width: 42px; height: 42px; transform: rotate(-45deg); object-fit: contain;">
+            </div>
+            <h1>CORE<br>ACCESS</h1>
+            <div class="subtitle">ENCRYPTED_SESSION_V2</div>
+        </div>
+        
+        <form method="POST">
+            <input type="password" name="password" placeholder="KEY_CODE" required autofocus>
+            <button type="submit">Execute Unlock</button>
+        </form>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="return-link">TERMINATE_SESSION</a>
+
+</body>
+</html>
